@@ -53,14 +53,7 @@ let okozukai3 = {
 solve "8-2" okozukai3
 
 
-type BloodType = A | B | O | AB
-type Person = {
-    name : string
-    height : float
-    weight : float
-    birth : int * int
-    bloodType : BloodType
-}
+#load "Person.fsx"
 
 let matsumoto = {
     name = "松本孝弘"

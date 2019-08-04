@@ -3,10 +3,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <RootNamespace>basic_of_programing</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Measure.fs" />
+    <Compile Include="Ekimei.fs" />
+    <Compile Include="Ekikan.fs" />
+    <Compile Include="Metro.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
