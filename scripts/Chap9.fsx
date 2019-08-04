@@ -50,30 +50,8 @@ let rec countKetsuekiA (lst: Person list) : string list =
         | A -> first.name :: countKetsuekiA rest
         | _ -> countKetsuekiA rest
 
-let persons = [
-    {
-        name = "akasaki"
-        height = 160.
-        weight = 60.
-        birth = (1,21)
-        bloodType = A
-    };
-    {
-        name = "ikeda"
-        height = 177.
-        weight = 88.
-        birth = (10,11)
-        bloodType = O
-    };
-    {
-        name = "ueki"
-        height = 198.
-        weight = 110.
-        birth = (9,5)
-        bloodType = AB
-    }]
 assertEq "9-7" (countKetsuekiA []) []
-assertEq "9-7" (countKetsuekiA persons) ["akasaki"]
+assertEq "9-7" (countKetsuekiA persons1) ["akasaki"]
 
 /// 誕生日を受け取り、星座を返す
 let seiza (month : int, day : int) : string =
@@ -100,4 +78,4 @@ let rec otomeza (lst: Person list) : string list =
         | "乙女座" -> first.name :: otomeza rest
         | _ -> otomeza rest
 assertEq "9-8" (otomeza []) []
-assertEq "9-8" (otomeza persons) ["ueki"]
+assertEq "9-8" (otomeza persons1) ["ueki"]
