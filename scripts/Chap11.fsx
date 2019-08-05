@@ -11,6 +11,7 @@ assertEq "11-1" (sumOfSquare 0) 0
 assertEq "11-1" (sumOfSquare 1) 1
 assertEq "11-1" (sumOfSquare 4) 30
 
+/// a_0 = 3, a_n = 2 * a_n-1 - 1 の漸化式からなる数列の一般項を求める
 let rec question112 (n: int) : int =
     if n <= 0 then 3
     else 2 * question112 (n - 1) - 1

@@ -349,6 +349,7 @@ module Metro =
             else romajiToKanji rest romaji
 
     /// 漢字の駅名2つと駅間リストを受け取り、2駅が直接繋がっている場合にその距離を返す
+    /// 辺の重みに対応している
     let rec getEkikanKyori (lst: Ekikan list) (ekimei1: string) (ekimei2: string) : float<km> option =
         match lst with
         | [] -> None
@@ -370,3 +371,17 @@ module Metro =
             match getEkikanKyori globalEkikanList kanjiEkimei1 kanjiEkimei2 with
             | None -> kanjiEkimei1 + "駅と" + kanjiEkimei2 + "駅は繋がっていません"
             | Some kyori ->kanjiEkimei1 + "駅から" + kanjiEkimei2 + "駅までは" + kyori.ToString() + "kmです"
+
+    /// Ekimei型のリストを受け取り、ひらがなの順に整列して同じ駅の重複を取り除いたEkimei型のリストを返す
+    /// 乗り換えを考慮するのであれば、globalEkimeiListをそのまま使う
+    /// その場合、路線が別で駅名が同じ駅については別の頂点として扱い、その間を「乗り換え」という辺で繋がっていると解釈する
+    let seiretsu (lst: Ekimei list) : Ekimei list =
+        let f x y = x.kana < y.kana
+        let rec qsort lst =
+            match lst with
+            | [] -> []
+            | pivot :: rest ->
+                let cmp x = f x pivot
+                let left, right = List.partition cmp rest
+                qsort left @ [pivot] @ qsort right
+        qsort lst

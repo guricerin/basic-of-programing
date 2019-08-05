@@ -10,6 +10,7 @@
     <Compile Include="Ekimei.fs" />
     <Compile Include="Ekikan.fs" />
     <Compile Include="Metro.fs" />
+    <Compile Include="Eki.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
