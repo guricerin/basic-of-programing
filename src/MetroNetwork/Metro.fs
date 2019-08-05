@@ -338,3 +338,34 @@ module Metro =
         {kiten="営団赤塚"; shuten="営団成増"; keiyu="有楽町線"; kyori=1.5<km>; jikan=2<minute>};
         {kiten="営団成増"; shuten="和光市"; keiyu="有楽町線"; kyori=2.1<km>; jikan=3<minute>};
     ]
+
+    /// ローマ字の駅名と駅名リストを受け取り、その駅の漢字表記を文字列で返す
+    /// 見つからない場合は空文字列を返す
+    let rec romajiToKanji (lst: Ekimei list) (romaji: string) : string =
+        match lst with
+        | [] -> ""
+        | first :: rest ->
+            if first.romaji = romaji then first.kanji
+            else romajiToKanji rest romaji
+
+    /// 漢字の駅名2つと駅間リストを受け取り、2駅が直接繋がっている場合にその距離を返す
+    let rec getEkikanKyori (lst: Ekikan list) (ekimei1: string) (ekimei2: string) =
+        match lst with
+        | [] -> None
+        | first :: rest ->
+            if first.kiten = ekimei1 && first.shuten = ekimei2 then Some first.kyori
+            else if first.kiten = ekimei2 && first.shuten = ekimei1 then Some first.kyori
+            else getEkikanKyori rest ekimei1 ekimei2
+
+    /// ローマ字の駅名を2つを受け取り、直接繋がっている場合は「x駅からy駅まではzkmです」
+    /// 繋がっていない場合は「x駅とy駅は繋がっていません」
+    /// 入力されたローマ字の駅名が存在しない場合は「xという駅は存在しません」という文字列を返す
+    let kyoriWoHyoji (ekimei1: string) (ekimei2: string) : string =
+        let kanjiEkimei1 = romajiToKanji globalEkimeiList ekimei1
+        let kanjiEkimei2 = romajiToKanji globalEkimeiList ekimei2
+        if kanjiEkimei1 = "" then ekimei1 + "という駅は存在しません"
+        else if kanjiEkimei2 = "" then ekimei2 + "という駅は存在しません"
+        else
+            match getEkikanKyori globalEkikanList kanjiEkimei1 kanjiEkimei2 with
+            | None -> kanjiEkimei1 + "駅と" + kanjiEkimei2 + "駅は繋がっていません"
+            | Some kyori ->kanjiEkimei1 + "駅から" + kanjiEkimei2 + "駅までは" + kyori.ToString() + "kmです"

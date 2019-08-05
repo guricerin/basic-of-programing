@@ -82,13 +82,44 @@ assertEq "10-5" (gakuseiMax []) System.Int32.MinValue
 assertEq "10-5" (gakuseiMax gakuseiList1) 100
 
 /// Person型のリストを受け取り、各血液型が何人いるかを組みにして返す
-let rec ketsuekiShukei (lst: Person list) : int * int * int * int =
-    match lst with
-    | [] -> (0, 0, 0, 0)
-    | first :: rest ->
-        let (a, b, o, ab) = ketsuekiShukei rest
-        match first.bloodType with
-        | A -> (a+1, b, o, ab)
-        | B -> (a, b+1, o, ab)
-        | O -> (a, b, o+1, ab)
-        | AB -> (a, b, o, ab+1)
+let ketsuekiShukei (lst: Person list) : int * int * int * int =
+    let rec loop lst acc =
+        match lst with
+        | [] -> acc
+        | first :: rest ->
+            let (a, b, o, ab) = acc
+            match first.bloodType with
+            | A -> loop rest (a+1, b, o, ab)
+            | B -> loop rest (a, b+1, o, ab)
+            | O -> loop rest (a, b, o+1, ab)
+            | AB -> loop rest (a, b, o, ab+1)
+    loop lst (0,0,0,0)
+
+assertEq "10-7" (ketsuekiShukei []) (0,0,0,0)
+assertEq "10-7" (ketsuekiShukei persons1) (1,0,1,1)
+
+/// Person型のリストを受け取り、最も人数の多い血液型を返す
+/// この実装だと、最多の血液型が複数ある場合に一番先頭の血液型を返してしまう
+let saitaKetsueki (lst: Person list) : BloodType =
+    let (a,b,o,ab) = ketsuekiShukei lst
+    let nax = [a;b;o;ab] |> List.max
+    if nax = a then A
+    else if nax = b then B
+    else if nax = o then O
+    else AB
+
+assertEq "10-8" (saitaKetsueki []) A
+assertEq "10-8" (saitaKetsueki persons1) A
+
+/// 2つのリストを受け取り、同じ長さか判定する（lengthを使わないこと）
+let rec equalLength lst1 lst2 : bool =
+    match (lst1, lst2) with
+    | ([], []) -> true
+    | (_ :: _, []) -> false
+    | ([], _ :: _) -> false
+    | (_ :: rest1, _ :: rest2) -> equalLength rest1 rest2
+
+assertEq "10-9" (equalLength [] []) true
+assertEq "10-9" (equalLength [1;2;3] [4;5]) false
+assertEq "10-9" (equalLength [1;2] [3;4;5;6]) false
+assertEq "10-9" (equalLength [1;2;3] [4;5;6]) true
