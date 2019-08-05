@@ -14,15 +14,10 @@ assertEq "10-1" (insert [2;3;4;5] 1) [1;2;3;4;5]
 assertEq "10-1" (insert [2;3;4;5] 6) [2;3;4;5;6]
 
 /// 整数のリストを受け取り、昇順にソートする（挿入ソート）
-let insSort (lst: int list) : int list =
-    let rec loop (sortedLst: int list) (n: int) (rest: int list) =
-        match rest with
-        | [] -> insert sortedLst n
-        | first :: rest ->
-            loop (insert sortedLst n) first rest
+let rec insSort lst =
     match lst with
     | [] -> []
-    | first :: rest -> loop [] first rest
+    | first :: rest -> insert (insSort rest) first
 
 assertEq "10-2" (insSort []) []
 assertEq "10-2" (insSort [5;4;3;2;1]) [1;2;3;4;5]
