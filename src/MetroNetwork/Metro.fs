@@ -349,7 +349,7 @@ module Metro =
             else romajiToKanji rest romaji
 
     /// 漢字の駅名2つと駅間リストを受け取り、2駅が直接繋がっている場合にその距離を返す
-    let rec getEkikanKyori (lst: Ekikan list) (ekimei1: string) (ekimei2: string) =
+    let rec getEkikanKyori (lst: Ekikan list) (ekimei1: string) (ekimei2: string) : float<km> option =
         match lst with
         | [] -> None
         | first :: rest ->
@@ -361,8 +361,9 @@ module Metro =
     /// 繋がっていない場合は「x駅とy駅は繋がっていません」
     /// 入力されたローマ字の駅名が存在しない場合は「xという駅は存在しません」という文字列を返す
     let kyoriWoHyoji (ekimei1: string) (ekimei2: string) : string =
-        let kanjiEkimei1 = romajiToKanji globalEkimeiList ekimei1
-        let kanjiEkimei2 = romajiToKanji globalEkimeiList ekimei2
+        let f = romajiToKanji globalEkimeiList
+        let kanjiEkimei1 = f ekimei1
+        let kanjiEkimei2 = f ekimei2
         if kanjiEkimei1 = "" then ekimei1 + "という駅は存在しません"
         else if kanjiEkimei2 = "" then ekimei2 + "という駅は存在しません"
         else
