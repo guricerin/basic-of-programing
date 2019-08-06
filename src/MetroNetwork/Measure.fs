@@ -1,7 +1,7 @@
-namespace MetroNetwork
+// namespace MetroNetwork
 
 [<AutoOpen>]
-module Measure =
+module Measure
 
     [<Measure>] type km
 

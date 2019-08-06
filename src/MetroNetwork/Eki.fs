@@ -1,6 +1,7 @@
 namespace MetroNetwork
 
 open MetroNetwork.Ekimei
+open MetroNetwork.Metro
 
 module Eki =
 
@@ -35,3 +36,23 @@ module Eki =
                 if first.namae = start then {first with saitanKyori = 0.<km>; temaeList = [start]}
                 else first
             s :: shokika rest start
+
+    /// 直前に最短距離が確定した駅p（Eki型）と未確定の駅q（Eki型）を受け取り、
+    /// pとqが直接繋がっていたらqの最短距離と手前リストを「最短距離がp経由の方が小さくなっていたら」更新したもの、
+    /// 繋がっていなかったらqをそのまま返す
+    let koushin1 (p: Eki) (q: Eki) : Eki =
+        match getEkikanKyori globalEkikanList p.namae q.namae with
+        | None -> q
+        | Some (dist) ->
+            let updatedQ =
+                let newDist = dist + p.saitanKyori
+                if newDist < q.saitanKyori
+                then {q with saitanKyori = newDist; temaeList = q.namae :: p.temaeList}
+                else q
+            updatedQ
+
+    /// 直前に最短距離が確定した駅p（Eki型）と未確定の駅のリストv（Eki list型）を受け取り、
+    /// 必要な更新処理を行なった後の未確定の駅のリストを返す
+    let koushin (p: Eki) (v: Eki list) : Eki list =
+        let f = koushin1 p
+        List.map f v
