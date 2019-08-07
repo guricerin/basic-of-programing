@@ -9,8 +9,9 @@
     <Compile Include="Measure.fs" />
     <Compile Include="Ekimei.fs" />
     <Compile Include="Ekikan.fs" />
-    <Compile Include="Metro.fs" />
     <Compile Include="Eki.fs" />
+    <Compile Include="Global.fs" />
+    <Compile Include="Core.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
