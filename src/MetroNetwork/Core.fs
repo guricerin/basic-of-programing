@@ -92,3 +92,30 @@ module Core =
                 updatedQ
         let f = koushin1 p
         List.map f v
+
+    /// Eki型の（未確定の）リストとEkikan型のリストを受け取り、
+    /// 各駅について最短距離と最短経路が正しく格納されたEki型のリストを返す
+    let rec dijkstraMain (ekiList: Eki list) (ekikanList: Ekikan list) : Eki list =
+        match ekiList with
+        | [] -> []
+        | first :: rest ->
+            let saitan, nokori = saitanWoBunri ekiList
+            let ekiList2 = koushin saitan nokori ekikanList
+            saitan :: dijkstraMain ekiList2 ekikanList
+
+    /// 始点の駅名（ローマ字）と終点の駅名（ローマ字）を受け取り、
+    /// seiretsuを使ってglobalEkimeiListの重複を取り除き、
+    /// romajiToKanjiを使って始点と終点の漢字表記を求め、
+    /// makeInitailEkiListを使って駅のリストを作成し、
+    /// dijkstraMainを使って各駅までの最短路を確定し、
+    /// その中から終点の駅のレコードを返す
+    let dijkstra (start: string) (goal: string) : Eki =
+        let ekimeiList = seiretsu globalEkimeiList
+        let start = romajiToKanji ekimeiList start
+        let goal = romajiToKanji ekimeiList goal
+        let ekiList = makeInitialEkiList ekimeiList start
+        let ekiList = dijkstraMain ekiList globalEkikanList
+
+        let init = {namae = goal; saitanKyori = inf; temaeList = []}
+        let f x y = if x.namae = y.namae then y else x
+        List.fold f init ekiList

@@ -24,4 +24,13 @@ let main argv =
     (* テスト *)
     let test = saitanWoBunri lst = (eki3, [eki1; eki2; eki4])
     printfn "%A" test
+
+    let test = dijkstraMain [] globalEkikanList
+    printfn "%A" test
+
+    let test = dijkstraMain lst globalEkikanList
+    printfn "%A" test
+
+    let test = dijkstra "akihabara" "meguro"
+    printfn "%A" test
     0 // return an integer exit code
