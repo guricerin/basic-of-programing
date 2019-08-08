@@ -7,19 +7,23 @@ open MetroNetwork.Global
 
 module Core =
 
+    exception NoSuchStationException of string // ローマ字の駅名
+
     /// ローマ字の駅名と駅名リストを受け取り、その駅の漢字表記を文字列で返す
     /// 見つからない場合は空文字列を返す
     let rec romajiToKanji (lst: Ekimei list) (romaji: string) : string =
         match lst with
-        | [] -> ""
+        | [] -> raise (NoSuchStationException romaji)
         | first :: rest ->
             if first.romaji = romaji then first.kanji
             else romajiToKanji rest romaji
 
+    exception NotFoundException
+
     /// 「駅名」と「駅名と距離の組みのリスト」を受け取り、その駅までの距離を返す
     let rec assoc (ekimei: string) (lst: (string * float<km>) list) : float<km> =
         match lst with
-        | [] -> inf
+        | [] -> raise NotFoundException
         | first :: rest ->
             let s, k = first
             if ekimei = s then k
@@ -43,7 +47,7 @@ module Core =
     /// 辺の重みに対応している
     let rec getEkikanKyori (tree: EkikanTree) (ekimei1: string) (ekimei2: string) : float<km> =
         match tree with
-        | Empty -> inf
+        | Empty -> raise NotFoundException
         | Node (left, kiten, lst, right) ->
             if ekimei1 = kiten then assoc ekimei2 lst
             else if ekimei1 < kiten then getEkikanKyori left ekimei1 ekimei2
@@ -102,15 +106,16 @@ module Core =
         /// pとqが直接繋がっていたらqの最短距離と手前リストを「最短距離がp経由の方が小さくなっていたら」更新したもの、
         /// 繋がっていなかったらqをそのまま返す
         let koushin1 (p: Eki) (q: Eki) : Eki =
-            match getEkikanKyori ekikanTree p.namae q.namae with
-            | dist when dist = inf -> q
-            | dist ->
+            try
+                let dist = getEkikanKyori ekikanTree p.namae q.namae
                 let updatedQ =
                     let newDist = dist + p.saitanKyori
                     if newDist < q.saitanKyori
                     then {q with saitanKyori = newDist; temaeList = q.namae :: p.temaeList}
                     else q
                 updatedQ
+            with
+            | NotFoundException -> q
         let f = koushin1 p
         List.map f v
 
