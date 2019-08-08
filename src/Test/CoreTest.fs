@@ -46,19 +46,27 @@ module CoreTest =
         let acc = acc && assertEq "insertEkikan 3" (insertEkikan tree2 ekikan3) tree3
         acc
 
-    let insertsEkikanTest (acc: bool) : bool =
+    let private insertsEkikanTest (acc: bool) : bool =
         let acc = acc && assertEq "insertsEkikan 1" (insertsEkikan Empty [ekikan1; ekikan2; ekikan3]) tree3
         acc
 
+    let private getEkikanKyoriTest (acc: bool) : bool =
+        let ekikanTree = insertsEkikan Empty globalEkikanList
+        let acc = acc && assertEq "getEkikanKyori 1" (getEkikanKyori ekikanTree "茗荷谷" "新大塚") 1.2<km>
+        let acc = acc && assertEq "getEkikanKyori 2" (getEkikanKyori ekikanTree "茗荷谷" "池袋") inf
+        let acc = acc && assertEq "getEkikanKyori 3" (getEkikanKyori ekikanTree "東京" "大手町") 0.6<km>
+        acc
+
     let private dijkstraMainTest (acc: bool) : bool =
-        let acc = acc && assertEq "dijkstraMain 1" (dijkstraMain [] globalEkikanList) []
+        let acc = acc && assertEq "dijkstraMain 1" (dijkstraMain [] Empty) []
         let sol = [
             {namae = "茗荷谷"; saitanKyori = 0.<km>; temaeList = ["茗荷谷"]};
             {namae = "新大塚"; saitanKyori = 1.2<km>; temaeList = ["新大塚"; "茗荷谷"]};
             {namae = "後楽園"; saitanKyori = 1.8<km>; temaeList = ["後楽園"; "茗荷谷"]};
             {namae = "池袋"; saitanKyori = 3.<km>; temaeList = ["池袋"; "新大塚"; "茗荷谷"]}
         ]
-        let acc = acc && assertEq "dijkstraMain 2" (dijkstraMain lst globalEkikanList) sol
+        let ekikanTree = insertsEkikan Empty globalEkikanList
+        let acc = acc && assertEq "dijkstraMain 2" (dijkstraMain lst ekikanTree) sol
         acc
 
     let private dijkstraTest (acc: bool) : bool =
@@ -84,5 +92,6 @@ module CoreTest =
         |> assocTest
         |> insertEkikanTest
         |> insertsEkikanTest
+        |> getEkikanKyoriTest
         |> dijkstraMainTest
         |> dijkstraTest

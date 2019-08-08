@@ -39,15 +39,15 @@ module Core =
     let insertsEkikan (tree: EkikanTree) (ekikanList: Ekikan list) : EkikanTree =
         List.fold insertEkikan tree ekikanList
 
-    /// 漢字の駅名2つと駅間リストを受け取り、2駅が直接繋がっている場合にその距離を返す
+    /// 漢字の駅名2つとEkikanTree型の木を受け取り、2駅が直接繋がっている場合にその距離を返す
     /// 辺の重みに対応している
-    let rec getEkikanKyori (lst: Ekikan list) (ekimei1: string) (ekimei2: string) : float<km> option =
-        match lst with
-        | [] -> None
-        | first :: rest ->
-            if first.kiten = ekimei1 && first.shuten = ekimei2 then Some first.kyori
-            else if first.kiten = ekimei2 && first.shuten = ekimei1 then Some first.kyori
-            else getEkikanKyori rest ekimei1 ekimei2
+    let rec getEkikanKyori (tree: EkikanTree) (ekimei1: string) (ekimei2: string) : float<km> =
+        match tree with
+        | Empty -> inf
+        | Node (left, kiten, lst, right) ->
+            if ekimei1 = kiten then assoc ekimei2 lst
+            else if ekimei1 < kiten then getEkikanKyori left ekimei1 ekimei2
+            else getEkikanKyori right ekimei1 ekimei2
 
     /// ローマ字の駅名を2つ受け取り、直接繋がっている場合は「x駅からy駅まではzkmです」
     /// 繋がっていない場合は「x駅とy駅は繋がっていません」
@@ -59,9 +59,10 @@ module Core =
         if kanjiEkimei1 = "" then ekimei1 + "という駅は存在しません"
         else if kanjiEkimei2 = "" then ekimei2 + "という駅は存在しません"
         else
-            match getEkikanKyori globalEkikanList kanjiEkimei1 kanjiEkimei2 with
-            | None -> kanjiEkimei1 + "駅と" + kanjiEkimei2 + "駅は繋がっていません"
-            | Some kyori ->kanjiEkimei1 + "駅から" + kanjiEkimei2 + "駅までは" + kyori.ToString() + "kmです"
+            let ekikanTree = insertsEkikan Empty globalEkikanList
+            match getEkikanKyori ekikanTree kanjiEkimei1 kanjiEkimei2 with
+            | kyori when kyori = inf -> kanjiEkimei1 + "駅と" + kanjiEkimei2 + "駅は繋がっていません"
+            | kyori -> kanjiEkimei1 + "駅から" + kanjiEkimei2 + "駅までは" + kyori.ToString() + "kmです"
 
     /// Ekimei型のリストを受け取り、ひらがなの順に整列して同じ駅の重複を取り除いたEkimei型のリストを返す
     /// 乗り換えを考慮するのであれば、globalEkimeiListをそのまま使う
@@ -99,14 +100,14 @@ module Core =
 
     /// 直前に最短距離が確定した駅p（Eki型）と未確定の駅のリストv（Eki list型）を受け取り、
     /// 必要な更新処理を行なった後の未確定の駅のリストを返す
-    let koushin (p: Eki) (v: Eki list) (ekikanList: Ekikan list): Eki list =
+    let koushin (p: Eki) (v: Eki list) (ekikanTree: EkikanTree): Eki list =
         /// 直前に最短距離が確定した駅p（Eki型）と未確定の駅q（Eki型）を受け取り、
         /// pとqが直接繋がっていたらqの最短距離と手前リストを「最短距離がp経由の方が小さくなっていたら」更新したもの、
         /// 繋がっていなかったらqをそのまま返す
         let koushin1 (p: Eki) (q: Eki) : Eki =
-            match getEkikanKyori ekikanList p.namae q.namae with
-            | None -> q
-            | Some (dist) ->
+            match getEkikanKyori ekikanTree p.namae q.namae with
+            | dist when dist = inf -> q
+            | dist ->
                 let updatedQ =
                     let newDist = dist + p.saitanKyori
                     if newDist < q.saitanKyori
@@ -118,13 +119,13 @@ module Core =
 
     /// Eki型の（未確定の）リストとEkikan型のリストを受け取り、
     /// 各駅について最短距離と最短経路が正しく格納されたEki型のリストを返す
-    let rec dijkstraMain (ekiList: Eki list) (ekikanList: Ekikan list) : Eki list =
+    let rec dijkstraMain (ekiList: Eki list) (ekikanTree: EkikanTree) : Eki list =
         match ekiList with
         | [] -> []
         | first :: rest ->
             let saitan, nokori = saitanWoBunri ekiList
-            let ekiList2 = koushin saitan nokori ekikanList
-            saitan :: dijkstraMain ekiList2 ekikanList
+            let ekiList2 = koushin saitan nokori ekikanTree
+            saitan :: dijkstraMain ekiList2 ekikanTree
 
     /// 始点の駅名（ローマ字）と終点の駅名（ローマ字）を受け取り、
     /// seiretsuを使ってglobalEkimeiListの重複を取り除き、
@@ -137,8 +138,8 @@ module Core =
         let start = romajiToKanji ekimeiList start
         let goal = romajiToKanji ekimeiList goal
         let ekiList = makeInitialEkiList ekimeiList start
-        let ekiTree = insertsEkikan Empty globalEkikanList
-        let ekiList = dijkstraMain ekiList globalEkikanList
+        let ekikanTree = insertsEkikan Empty globalEkikanList
+        let ekiList = dijkstraMain ekiList ekikanTree
 
         let init = {namae = goal; saitanKyori = inf; temaeList = []}
         let f x y = if x.namae = y.namae then y else x
