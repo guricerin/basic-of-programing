@@ -57,6 +57,10 @@ module CoreTest =
         let acc = acc && assertEq "getEkikanKyori 3" (getEkikanKyori ekikanTree "東京" "大手町") 0.6<km>
         acc
 
+    let private saitanWoBunriTest (acc: bool) : bool =
+        let acc = acc && assertEq "saitanWoBunri 1" (saitanWoBunri eki1 [eki2; eki3; eki4]) (eki3, [eki4; eki2; eki1])
+        acc
+
     let private dijkstraMainTest (acc: bool) : bool =
         let acc = acc && assertEq "dijkstraMain 1" (dijkstraMain [] Empty) []
         let sol = [
@@ -93,5 +97,6 @@ module CoreTest =
         |> insertEkikanTest
         |> insertsEkikanTest
         |> getEkikanKyoriTest
+        |> saitanWoBunriTest
         |> dijkstraMainTest
         |> dijkstraTest

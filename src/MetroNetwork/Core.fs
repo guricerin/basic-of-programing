@@ -88,15 +88,12 @@ module Core =
         List.map f ekimeiLst
 
     /// Eki型のリストを受け取り、「最短距離最小の駅」と「最短距離最小の駅以外からなるリスト」の組みを返す
-    let saitanWoBunri (ekiList: Eki list) : Eki * Eki list =
-        let saitan lst =
-            let f x y = if x.saitanKyori < y.saitanKyori then x else y
-            List.fold f {namae=""; saitanKyori = inf; temaeList = []} lst
-        let saitanEki = saitan ekiList
-        let bunri =
-            let f x = saitanEki <> x
-            List.filter f ekiList
-        (saitanEki, bunri)
+    let saitanWoBunri (eki: Eki) (ekiList: Eki list) : Eki * Eki list =
+        let f (p, v) first =
+            if p.saitanKyori <= first.saitanKyori
+            then (p, first :: v)
+            else (first, p :: v)
+        List.fold f (eki, []) ekiList
 
     /// 直前に最短距離が確定した駅p（Eki型）と未確定の駅のリストv（Eki list型）を受け取り、
     /// 必要な更新処理を行なった後の未確定の駅のリストを返す
@@ -123,7 +120,7 @@ module Core =
         match ekiList with
         | [] -> []
         | first :: rest ->
-            let saitan, nokori = saitanWoBunri ekiList
+            let saitan, nokori = saitanWoBunri first rest
             let ekiList2 = koushin saitan nokori ekikanTree
             saitan :: dijkstraMain ekiList2 ekikanTree
 
