@@ -10,3 +10,7 @@ module Ekikan =
         kyori : float<km> // 2点間の距離
         jikan : int<minute> // 所要時間
     }
+
+    type EkikanTree =
+        | Empty
+        | Node of EkikanTree * string * (string * float<km>) list * EkikanTree

@@ -10,8 +10,7 @@ let isSuccess x =
 
 [<EntryPoint>]
 let main argv =
-    let x = true
-    x
+    true
     |> CoreTest.doTest
     |> isSuccess
     0 // return an integer exit code

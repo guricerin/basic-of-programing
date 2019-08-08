@@ -16,6 +16,29 @@ module Core =
             if first.romaji = romaji then first.kanji
             else romajiToKanji rest romaji
 
+    /// 「駅名」と「駅名と距離の組みのリスト」を受け取り、その駅までの距離を返す
+    let rec assoc (ekimei: string) (lst: (string * float<km>) list) : float<km> =
+        match lst with
+        | [] -> inf
+        | first :: rest ->
+            let s, k = first
+            if ekimei = s then k
+            else assoc ekimei rest
+
+    /// EkikanTree型の木とEkikan型の値を受け取り、その情報を挿入した木を返す
+    let insertEkikan (tree: EkikanTree) (ekikan: Ekikan) : EkikanTree =
+        let rec insert kiten shuten kyori = function
+        | Empty -> Node (Empty, kiten, [(shuten, kyori)], Empty)
+        | Node (left, k, lst, right) ->
+            if kiten = k then Node (left, k, (shuten, kyori) :: lst, right)
+            else if kiten < k then Node (insert kiten shuten kyori left, k, lst, right)
+            else Node (left, k, lst, insert kiten shuten kyori right)
+        insert ekikan.kiten ekikan.shuten ekikan.kyori (insert ekikan.shuten ekikan.kiten ekikan.kyori tree)
+
+    /// EkikanTree型の木とEkikan型のリストを受け取り、リストの中に含まれる駅間を全て挿入した木を返す
+    let insertsEkikan (tree: EkikanTree) (ekikanList: Ekikan list) : EkikanTree =
+        List.fold insertEkikan tree ekikanList
+
     /// 漢字の駅名2つと駅間リストを受け取り、2駅が直接繋がっている場合にその距離を返す
     /// 辺の重みに対応している
     let rec getEkikanKyori (lst: Ekikan list) (ekimei1: string) (ekimei2: string) : float<km> option =
@@ -26,7 +49,7 @@ module Core =
             else if first.kiten = ekimei2 && first.shuten = ekimei1 then Some first.kyori
             else getEkikanKyori rest ekimei1 ekimei2
 
-    /// ローマ字の駅名を2つを受け取り、直接繋がっている場合は「x駅からy駅まではzkmです」
+    /// ローマ字の駅名を2つ受け取り、直接繋がっている場合は「x駅からy駅まではzkmです」
     /// 繋がっていない場合は「x駅とy駅は繋がっていません」
     /// 入力されたローマ字の駅名が存在しない場合は「xという駅は存在しません」という文字列を返す
     let kyoriWoHyoji (ekimei1: string) (ekimei2: string) : string =
@@ -114,6 +137,7 @@ module Core =
         let start = romajiToKanji ekimeiList start
         let goal = romajiToKanji ekimeiList goal
         let ekiList = makeInitialEkiList ekimeiList start
+        let ekiTree = insertsEkikan Empty globalEkikanList
         let ekiList = dijkstraMain ekiList globalEkikanList
 
         let init = {namae = goal; saitanKyori = inf; temaeList = []}
