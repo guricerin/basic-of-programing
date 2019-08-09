@@ -2,6 +2,7 @@ namespace MetroNetwork
 
 open MetroNetwork.Ekimei
 open MetroNetwork.Ekikan
+open MetroNetwork.RedBlackTree
 open MetroNetwork.Eki
 open MetroNetwork.Global
 
@@ -28,7 +29,7 @@ module Core =
         if kanjiEkimei1 = "" then ekimei1 + "という駅は存在しません"
         else if kanjiEkimei2 = "" then ekimei2 + "という駅は存在しません"
         else
-            let ekikanTree = insertsEkikan Empty globalEkikanList
+            let ekikanTree = insertsEkikan empty globalEkikanList
             match getEkikanKyori ekikanTree kanjiEkimei1 kanjiEkimei2 with
             | kyori when kyori = inf -> kanjiEkimei1 + "駅と" + kanjiEkimei2 + "駅は繋がっていません"
             | kyori -> kanjiEkimei1 + "駅から" + kanjiEkimei2 + "駅までは" + kyori.ToString() + "kmです"
@@ -80,7 +81,7 @@ module Core =
                     else q
                 updatedQ
             with
-            | Tree.NotFoundException -> q
+            | NotFoundException -> q
         let f = koushin1 p
         List.map f v
 
@@ -105,7 +106,7 @@ module Core =
         let start = romajiToKanji ekimeiList start
         let goal = romajiToKanji ekimeiList goal
         let ekiList = makeInitialEkiList ekimeiList start
-        let ekikanTree = insertsEkikan Empty globalEkikanList
+        let ekikanTree = insertsEkikan empty globalEkikanList
         let ekiList = dijkstraMain ekiList ekikanTree
 
         let init = {namae = goal; saitanKyori = inf; temaeList = []}

@@ -1,7 +1,6 @@
-// namespace MetroNetwork
+namespace MetroNetwork
 
-[<RequireQualifiedAccessAttribute>]
-module Tree
+module Tree =
 
     /// 2分探索木
     type Tree<'a, 'b> =

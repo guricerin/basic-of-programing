@@ -1,5 +1,7 @@
 namespace MetroNetwork
 
+open RedBlackTree
+
 module Ekikan =
 
     /// 駅と駅の接続情報を格納する
@@ -14,19 +16,20 @@ module Ekikan =
     // type EkikanTree =
     //     | Empty
     //     | Node of EkikanTree * string * (string * float<km>) list * EkikanTree
-    type EkikanTree = Tree.Tree<string, (string * float<km>) list>
+    // type EkikanTree = Tree.Tree<string, (string * float<km>) list>
+    type EkikanTree = RbTree<string, (string * float<km>) list>
 
-    let Empty = Tree.Empty
+    let empty = Empty
 
     /// 受け取ったEkikan情報をEkikanTreeに挿入した木を返す
-    let insertEkikan (ekikanTree: EkikanTree) (ekikan: Ekikan) =
+    let insertEkikan ekikanTree (ekikan: Ekikan) =
         let rec insert1 (ekikanTree: EkikanTree) kiten shuten kyori =
             let lst =
                 try
-                    Tree.search ekikanTree kiten
+                    search ekikanTree kiten
                 with
-                | Tree.NotFoundException -> []
-            Tree.insert ekikanTree kiten ((shuten, kyori) :: lst)
+                | NotFoundException -> []
+            insert ekikanTree kiten ((shuten, kyori) :: lst)
 
         insert1 (insert1 ekikanTree ekikan.kiten ekikan.shuten ekikan.kyori) ekikan.shuten ekikan.kiten ekikan.kyori
 
@@ -37,7 +40,7 @@ module Ekikan =
     /// 「駅名」と「駅名と距離の組みのリスト」を受け取り、その駅までの距離を返す
     let rec assoc (ekimei: string) (lst: (string * float<km>) list) : float<km> =
         match lst with
-        | [] -> raise Tree.NotFoundException
+        | [] -> raise NotFoundException
         | first :: rest ->
             let s, k = first
             if ekimei = s then k
@@ -45,5 +48,5 @@ module Ekikan =
 
     /// 漢字の駅名2つとEkikanTree型の木を受け取り、2駅が直接繋がっている場合にその距離を返す
     /// 辺の重みに対応している
-    let getEkikanKyori (tree: EkikanTree) (ekimei1: string) (ekimei2: string) =
-        assoc ekimei2 (Tree.search tree ekimei1)
+    let getEkikanKyori tree (ekimei1: string) (ekimei2: string) =
+        assoc ekimei2 (search tree ekimei1)

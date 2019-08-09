@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include="Measure.fs" />
     <Compile Include="Tree.fs" />
+    <Compile Include="RedBlackTree.fs" />
     <Compile Include="Ekimei.fs" />
     <Compile Include="Ekikan.fs" />
     <Compile Include="Eki.fs" />
