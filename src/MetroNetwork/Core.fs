@@ -18,41 +18,6 @@ module Core =
             if first.romaji = romaji then first.kanji
             else romajiToKanji rest romaji
 
-    exception NotFoundException
-
-    /// 「駅名」と「駅名と距離の組みのリスト」を受け取り、その駅までの距離を返す
-    let rec assoc (ekimei: string) (lst: (string * float<km>) list) : float<km> =
-        match lst with
-        | [] -> raise NotFoundException
-        | first :: rest ->
-            let s, k = first
-            if ekimei = s then k
-            else assoc ekimei rest
-
-    /// EkikanTree型の木とEkikan型の値を受け取り、その情報を挿入した木を返す
-    let insertEkikan (tree: EkikanTree) (ekikan: Ekikan) : EkikanTree =
-        let rec insert kiten shuten kyori = function
-        | Empty -> Node (Empty, kiten, [(shuten, kyori)], Empty)
-        | Node (left, k, lst, right) ->
-            if kiten = k then Node (left, k, (shuten, kyori) :: lst, right)
-            else if kiten < k then Node (insert kiten shuten kyori left, k, lst, right)
-            else Node (left, k, lst, insert kiten shuten kyori right)
-        insert ekikan.kiten ekikan.shuten ekikan.kyori (insert ekikan.shuten ekikan.kiten ekikan.kyori tree)
-
-    /// EkikanTree型の木とEkikan型のリストを受け取り、リストの中に含まれる駅間を全て挿入した木を返す
-    let insertsEkikan (tree: EkikanTree) (ekikanList: Ekikan list) : EkikanTree =
-        List.fold insertEkikan tree ekikanList
-
-    /// 漢字の駅名2つとEkikanTree型の木を受け取り、2駅が直接繋がっている場合にその距離を返す
-    /// 辺の重みに対応している
-    let rec getEkikanKyori (tree: EkikanTree) (ekimei1: string) (ekimei2: string) : float<km> =
-        match tree with
-        | Empty -> raise NotFoundException
-        | Node (left, kiten, lst, right) ->
-            if ekimei1 = kiten then assoc ekimei2 lst
-            else if ekimei1 < kiten then getEkikanKyori left ekimei1 ekimei2
-            else getEkikanKyori right ekimei1 ekimei2
-
     /// ローマ字の駅名を2つ受け取り、直接繋がっている場合は「x駅からy駅まではzkmです」
     /// 繋がっていない場合は「x駅とy駅は繋がっていません」
     /// 入力されたローマ字の駅名が存在しない場合は「xという駅は存在しません」という文字列を返す
@@ -115,7 +80,7 @@ module Core =
                     else q
                 updatedQ
             with
-            | NotFoundException -> q
+            | Tree.NotFoundException -> q
         let f = koushin1 p
         List.map f v
 

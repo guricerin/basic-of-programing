@@ -17,19 +17,19 @@ module CoreTest =
     let ekikan2 = {kiten="新大塚"; shuten="茗荷谷"; keiyu="丸ノ内線"; kyori=1.2<km>; jikan=2<minute>}
     let ekikan3 = {kiten="茗荷谷"; shuten="後楽園"; keiyu="丸ノ内線"; kyori=1.8<km>; jikan=2<minute>}
 
-    let tree1 =
-        Node (Empty, "新大塚", [("池袋", 1.8<km>)],
-            Node (Empty, "池袋", [("新大塚", 1.8<km>)], Empty))
-    let tree2 =
-        Node (Empty, "新大塚", [("茗荷谷", 1.2<km>); ("池袋", 1.8<km>)],
-            Node (Empty, "池袋", [("新大塚", 1.8<km>)],
-                Node (Empty, "茗荷谷", [("新大塚", 1.2<km>)], Empty)))
-    let tree3 =
-        Node (Node (Empty, "後楽園", [("茗荷谷", 1.8<km>)], Empty),
-            "新大塚", [("茗荷谷", 1.2<km>); ("池袋", 1.8<km>)],
-            Node (Empty,
-                "池袋", [("新大塚", 1.8<km>)],
-                    Node (Empty, "茗荷谷", [("後楽園", 1.8<km>); ("新大塚", 1.2<km>)], Empty)))
+    // let tree1 =
+    //     Node (Empty, "新大塚", [("池袋", 1.8<km>)],
+    //         Node (Empty, "池袋", [("新大塚", 1.8<km>)], Empty))
+    // let tree2 =
+    //     Node (Empty, "新大塚", [("茗荷谷", 1.2<km>); ("池袋", 1.8<km>)],
+    //         Node (Empty, "池袋", [("新大塚", 1.8<km>)],
+    //             Node (Empty, "茗荷谷", [("新大塚", 1.2<km>)], Empty)))
+    // let tree3 =
+    //     Node (Node (Empty, "後楽園", [("茗荷谷", 1.8<km>)], Empty),
+    //         "新大塚", [("茗荷谷", 1.2<km>); ("池袋", 1.8<km>)],
+    //         Node (Empty,
+    //             "池袋", [("新大塚", 1.8<km>)],
+    //                 Node (Empty, "茗荷谷", [("後楽園", 1.8<km>); ("新大塚", 1.2<km>)], Empty)))
 
     (* 駅リストの例 *)
     let lst = [eki1; eki2; eki3; eki4]
@@ -41,19 +41,19 @@ module CoreTest =
         acc
 
     let private assocTest (acc: bool) : bool =
-        // let acc = acc && assertEq "assoc 1" (assoc "後楽園" []) inf
+        // let acc = acc && assertEq "assoc 1" (assoc "後楽園" []) inf // NoSuchStationException
         let acc = acc && assertEq "assoc 2" (assoc "後楽園" [("新大塚", 1.2<km>); ("後楽園", 1.8<km>)]) 1.8<km>
-        // let acc = acc && assertEq "assoc 3" (assoc "池袋" [("新大塚", 1.2<km>); ("後楽園", 1.8<km>)]) inf
+        // let acc = acc && assertEq "assoc 3" (assoc "池袋" [("新大塚", 1.2<km>); ("後楽園", 1.8<km>)]) inf // NoSuchStationException
         acc
 
     let private insertEkikanTest (acc: bool) : bool =
-        let acc = acc && assertEq "insertEkikan 1" (insertEkikan Empty ekikan1) tree1
-        let acc = acc && assertEq "insertEkikan 2" (insertEkikan tree1 ekikan2) tree2
-        let acc = acc && assertEq "insertEkikan 3" (insertEkikan tree2 ekikan3) tree3
+        // let acc = acc && assertEq "insertEkikan 1" (insertEkikan Empty ekikan1) tree1
+        // let acc = acc && assertEq "insertEkikan 2" (insertEkikan tree1 ekikan2) tree2
+        // let acc = acc && assertEq "insertEkikan 3" (insertEkikan tree2 ekikan3) tree3
         acc
 
     let private insertsEkikanTest (acc: bool) : bool =
-        let acc = acc && assertEq "insertsEkikan 1" (insertsEkikan Empty [ekikan1; ekikan2; ekikan3]) tree3
+        // let acc = acc && assertEq "insertsEkikan 1" (insertsEkikan Empty [ekikan1; ekikan2; ekikan3]) tree3
         acc
 
     let private getEkikanKyoriTest (acc: bool) : bool =

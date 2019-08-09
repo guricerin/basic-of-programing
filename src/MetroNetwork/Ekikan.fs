@@ -11,6 +11,39 @@ module Ekikan =
         jikan : int<minute> // 所要時間
     }
 
-    type EkikanTree =
-        | Empty
-        | Node of EkikanTree * string * (string * float<km>) list * EkikanTree
+    // type EkikanTree =
+    //     | Empty
+    //     | Node of EkikanTree * string * (string * float<km>) list * EkikanTree
+    type EkikanTree = Tree.Tree<string, (string * float<km>) list>
+
+    let Empty = Tree.Empty
+
+    /// 受け取ったEkikan情報をEkikanTreeに挿入した木を返す
+    let insertEkikan (ekikanTree: EkikanTree) (ekikan: Ekikan) =
+        let rec insert1 (ekikanTree: EkikanTree) kiten shuten kyori =
+            let lst =
+                try
+                    Tree.search ekikanTree kiten
+                with
+                | Tree.NotFoundException -> []
+            Tree.insert ekikanTree kiten ((shuten, kyori) :: lst)
+
+        insert1 (insert1 ekikanTree ekikan.kiten ekikan.shuten ekikan.kyori) ekikan.shuten ekikan.kiten ekikan.kyori
+
+    /// EkikanTree型の木とEkikan型のリストを受け取り、リストの中に含まれる駅間を全て挿入した木を返す
+    let insertsEkikan (tree: EkikanTree) (ekikanList: Ekikan list) : EkikanTree =
+        List.fold insertEkikan tree ekikanList
+
+    /// 「駅名」と「駅名と距離の組みのリスト」を受け取り、その駅までの距離を返す
+    let rec assoc (ekimei: string) (lst: (string * float<km>) list) : float<km> =
+        match lst with
+        | [] -> raise Tree.NotFoundException
+        | first :: rest ->
+            let s, k = first
+            if ekimei = s then k
+            else assoc ekimei rest
+
+    /// 漢字の駅名2つとEkikanTree型の木を受け取り、2駅が直接繋がっている場合にその距離を返す
+    /// 辺の重みに対応している
+    let getEkikanKyori (tree: EkikanTree) (ekimei1: string) (ekimei2: string) =
+        assoc ekimei2 (Tree.search tree ekimei1)
