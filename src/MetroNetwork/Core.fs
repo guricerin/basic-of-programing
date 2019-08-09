@@ -112,3 +112,18 @@ module Core =
         let init = {namae = goal; saitanKyori = inf; temaeList = []}
         let f x y = if x.namae = y.namae then y else x
         List.fold f init ekiList
+
+    /// Eki型の値を受け取り、最短路問題の結果を綺麗に表示
+    let printEki (eki: Eki) : unit =
+        let rec loop = function
+        | [] -> failwith "起こり得ない"
+        | [last] -> printf "%s" last
+        | first :: rest ->
+            do
+                printf "%s -> " first
+                loop rest
+
+        do
+            printfn "%s駅への最短経路:" eki.namae
+            loop (List.rev eki.temaeList)
+            printfn " (%.2fkm)" eki.saitanKyori
