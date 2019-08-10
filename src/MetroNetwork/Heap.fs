@@ -117,6 +117,7 @@ module Heap =
     /// 最小の値を持つもののidxは無効な値になる
     /// ヒープが空の時は例外を投げる
     /// ヒープは破壊的に書き換わる
+    /// saitanWoBunriに該当する
     let splitTop (heap: Heap<'a, 'b>) =
         let (sizeRef, arr) = heap
         if !sizeRef = 0 then raise HeapEmptyException else

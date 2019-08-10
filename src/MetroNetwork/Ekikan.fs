@@ -22,7 +22,7 @@ module Ekikan =
     let empty = Empty
 
     /// 受け取ったEkikan情報をEkikanTreeに挿入した木を返す
-    let insertEkikan ekikanTree (ekikan: Ekikan) =
+    let private insertEkikan ekikanTree (ekikan: Ekikan) =
         let rec insert1 (ekikanTree: EkikanTree) kiten shuten kyori =
             let lst =
                 try
@@ -34,8 +34,13 @@ module Ekikan =
         insert1 (insert1 ekikanTree ekikan.kiten ekikan.shuten ekikan.kyori) ekikan.shuten ekikan.kiten ekikan.kyori
 
     /// EkikanTree型の木とEkikan型のリストを受け取り、リストの中に含まれる駅間を全て挿入した木を返す
-    let insertsEkikan (tree: EkikanTree) (ekikanList: Ekikan list) : EkikanTree =
+    let private insertsEkikan (tree: EkikanTree) (ekikanList: Ekikan list) : EkikanTree =
         List.fold insertEkikan tree ekikanList
+
+    /// 重複を取り除き、各点の接続情報を示すekikanTreeを返す
+    /// 駅間情報のみから構築し、駅情報は使わない
+    let makeEkikanTree ekikanList =
+        insertsEkikan empty ekikanList
 
     /// 「駅名」と「駅名と距離の組みのリスト」を受け取り、その駅までの距離を返す
     let rec assoc (ekimei: string) (lst: (string * float<km>) list) : float<km> =

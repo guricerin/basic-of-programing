@@ -3,6 +3,7 @@ namespace MetroNetwork
 open MetroNetwork.Ekimei
 open MetroNetwork.Ekikan
 open MetroNetwork.RedBlackTree
+// open MetroNetwork.Heap
 open MetroNetwork.Eki
 open MetroNetwork.Global
 
@@ -18,21 +19,6 @@ module Core =
         | first :: rest ->
             if first.romaji = romaji then first.kanji
             else romajiToKanji rest romaji
-
-    /// ローマ字の駅名を2つ受け取り、直接繋がっている場合は「x駅からy駅まではzkmです」
-    /// 繋がっていない場合は「x駅とy駅は繋がっていません」
-    /// 入力されたローマ字の駅名が存在しない場合は「xという駅は存在しません」という文字列を返す
-    let kyoriWoHyoji (ekimei1: string) (ekimei2: string) : string =
-        let f = romajiToKanji globalEkimeiList
-        let kanjiEkimei1 = f ekimei1
-        let kanjiEkimei2 = f ekimei2
-        if kanjiEkimei1 = "" then ekimei1 + "という駅は存在しません"
-        else if kanjiEkimei2 = "" then ekimei2 + "という駅は存在しません"
-        else
-            let ekikanTree = insertsEkikan empty globalEkikanList
-            match getEkikanKyori ekikanTree kanjiEkimei1 kanjiEkimei2 with
-            | kyori when kyori = inf -> kanjiEkimei1 + "駅と" + kanjiEkimei2 + "駅は繋がっていません"
-            | kyori -> kanjiEkimei1 + "駅から" + kanjiEkimei2 + "駅までは" + kyori.ToString() + "kmです"
 
     /// Ekimei型のリストを受け取り、ひらがなの順に整列して同じ駅の重複を取り除いたEkimei型のリストを返す
     /// 乗り換えを考慮するのであれば、globalEkimeiListをそのまま使う
@@ -57,17 +43,51 @@ module Core =
             else {namae = ekimei.kanji; saitanKyori = inf; temaeList = []}
         List.map f ekimeiLst
 
-    /// Eki型のリストを受け取り、「最短距離最小の駅」と「最短距離最小の駅以外からなるリスト」の組みを返す
-    let saitanWoBunri (eki: Eki) (ekiList: Eki list) : Eki * Eki list =
-        let f (p, v) first =
-            if p.saitanKyori <= first.saitanKyori
-            then (p, first :: v)
-            else (first, p :: v)
-        List.fold f (eki, []) ekiList
+    /// 未確定駅の情報を表すヒープ
+    /// 最短距離、駅名、手前リスト
+    type EkiHeap = Heap.Heap<float<km>, Eki>
 
-    /// 直前に最短距離が確定した駅p（Eki型）と未確定の駅のリストv（Eki list型）を受け取り、
-    /// 必要な更新処理を行なった後の未確定の駅のリストを返す
-    let koushin (p: Eki) (v: Eki list) (ekikanTree: EkikanTree): Eki list =
+    /// Ekimei listと起点の駅名を受け取り、EkiHeapを作成する
+    /// 起点のみ、saitanKyoriを0.0, temaeListを["起点の駅名"]にする
+    let makeInitialEkiHeap (ekimeiList: Ekimei list) (kiten: string): EkiHeap =
+        let size = List.length ekimeiList
+        let init = {namae = ""; saitanKyori = inf; temaeList = []}
+        let heap = Heap.create size 0.<km> init
+        let f (ekimei: Ekimei) =
+            if ekimei.kanji = kiten
+            then do
+                Heap.insert heap 0.<km> {namae = ekimei.kanji; saitanKyori = 0.<km>; temaeList = [ekimei.kanji]}
+                |> ignore
+            else do
+                Heap.insert heap inf {namae = ekimei.kanji; saitanKyori = inf; temaeList = []}
+                |> ignore
+
+        List.iter f ekimeiList
+        heap
+
+    /// Eki listからEkiHeapを作成
+    let makeEkiHeap (ekiList: Eki list) : EkiHeap =
+        let rec insert heap = function
+        | [] -> heap
+        | first :: rest ->
+            let (_, heap) = Heap.insert heap first.saitanKyori first
+            insert heap rest
+
+        let size = List.length ekiList
+        let heap = Heap.create size 0.<km> {namae = ""; saitanKyori = inf; temaeList = []}
+        insert heap ekiList
+
+    /// EkiHeapからEki listを作成
+    let rec makeEkiList (ekiHeap: EkiHeap) : Eki list =
+        if Heap.length ekiHeap = 0
+        then []
+        else
+            let ((kyori, eki), restHeap) = Heap.splitTop ekiHeap
+            eki :: makeEkiList restHeap
+
+    /// 直前に最短距離が確定した駅p（Eki型）と未確定の駅のヒープv（EkiHeap型）を受け取り、
+    /// 必要な更新処理を行なった後の未確定の駅のヒープを返す
+    let koushin (p: Eki) (v: EkiHeap) (ekikanTree: EkikanTree): EkiHeap =
         /// 直前に最短距離が確定した駅p（Eki型）と未確定の駅q（Eki型）を受け取り、
         /// pとqが直接繋がっていたらqの最短距離と手前リストを「最短距離がp経由の方が小さくなっていたら」更新したもの、
         /// 繋がっていなかったらqをそのまま返す
@@ -83,17 +103,25 @@ module Core =
             with
             | NotFoundException -> q
         let f = koushin1 p
-        List.map f v
+        /// todo:EkiListを介するのではなく、EkiHeapを直接扱うよう修正
+        makeEkiList v |> List.map f |> makeEkiHeap
 
-    /// Eki型の（未確定の）リストとEkikan型のリストを受け取り、
+    /// Eki型の（未確定の）ヒープとEkikan型のリストを受け取り、
     /// 各駅について最短距離と最短経路が正しく格納されたEki型のリストを返す
-    let rec dijkstraMain (ekiList: Eki list) (ekikanTree: EkikanTree) : Eki list =
-        match ekiList with
-        | [] -> []
-        | first :: rest ->
-            let saitan, nokori = saitanWoBunri first rest
-            let ekiList2 = koushin saitan nokori ekikanTree
-            saitan :: dijkstraMain ekiList2 ekikanTree
+    let rec dijkstraMain (ekiHeap: EkiHeap) (ekikanTree: EkikanTree) : Eki list =
+        if Heap.length ekiHeap = 0
+        then []
+        else
+            let ((kyori, eki), restHeap) = Heap.splitTop ekiHeap
+            let ekiHeap2 = koushin eki restHeap ekikanTree
+            eki :: dijkstraMain ekiHeap2 ekikanTree
+
+    /// 駅名とEki型のリストを受け取り、該当するEki型のレコードを返す
+    let private find ekimei (ekiList: Eki list) =
+        let res = List.filter (fun eki -> eki.namae = ekimei) ekiList
+        match res with
+        | [] -> {namae = ""; saitanKyori = inf; temaeList = []}
+        | first :: _ -> first
 
     /// 始点の駅名（ローマ字）と終点の駅名（ローマ字）を受け取り、
     /// seiretsuを使ってglobalEkimeiListの重複を取り除き、
@@ -105,25 +133,24 @@ module Core =
         let ekimeiList = seiretsu globalEkimeiList
         let start = romajiToKanji ekimeiList start
         let goal = romajiToKanji ekimeiList goal
-        let ekiList = makeInitialEkiList ekimeiList start
-        let ekikanTree = insertsEkikan empty globalEkikanList
-        let ekiList = dijkstraMain ekiList ekikanTree
+        let ekikanTree = makeEkikanTree globalEkikanList
+        let ekiHeap = makeInitialEkiHeap ekimeiList start
+        let ekiList = dijkstraMain ekiHeap ekikanTree
 
-        let init = {namae = goal; saitanKyori = inf; temaeList = []}
-        let f x y = if x.namae = y.namae then y else x
-        List.fold f init ekiList
+        find goal ekiList
 
     /// Eki型の値を受け取り、最短路問題の結果を綺麗に表示
     let printEki (eki: Eki) : unit =
+        let mutable msg = ""
         let rec loop = function
         | [] -> failwith "起こり得ない"
-        | [last] -> printf "%s" last
-        | first :: rest ->
-            do
-                printf "%s -> " first
-                loop rest
+        | [last] -> do
+            msg <- sprintf "%s%s" msg last
+        | first :: rest -> do
+            msg <- sprintf "%s%s -> " msg first
+            loop rest
 
         do
-            printfn "%s駅への最短経路:" eki.namae
+            msg <- sprintf "%s駅への最短経路:\n" eki.namae
             loop (List.rev eki.temaeList)
-            printfn " (%.2fkm)" eki.saitanKyori
+            printfn "%s (%.2f km)" msg eki.saitanKyori

@@ -53,6 +53,21 @@ module RedBlackTree =
             then search left k
             else search right k
 
+    /// 全てのノードを深さ優先探索で訪れ、fを適用する
+    let rec traverse f init = function
+    | Empty -> init
+    | Node (left, key, value, _, right) ->
+        let result1 = f init key value
+        let result2 = traverse f result1 left
+        let result3 = traverse f result2 right
+        result3
+
+    /// 木の中にあるノード数を返す
+    let rec length = function
+    | Empty -> 0
+    | Node (left, _, _, _, right) ->
+        length left + 1 + length right
+
     let RbTreeTest () =
         let rbtree1 =
             Node (Node (Node (Empty, 10, "x", Red, Empty), 13, "y", Red, Empty), 15, "z", Black, Empty)
