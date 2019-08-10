@@ -1,10 +1,12 @@
 ﻿open System
 open MetroNetwork.RedBlackTree
+open MetroNetwork.Heap
 open MetroNetwork.Core
 
 [<EntryPoint>]
 let main argv =
     // RbTreeTest()
+    // heapTest()
     // printfn "%s" "All test passed!"
     do
         printfn ""

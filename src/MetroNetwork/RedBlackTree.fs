@@ -4,6 +4,10 @@ module RedBlackTree =
 
     type Color = Red | Black
 
+    /// 赤黒木
+    /// 親の頂点の値は左の子よりも大きく、右の子よりも小さい。
+    /// 木の根から空の葉に至る全てのパスにおいて、黒い頂点の数は同じ。
+    /// 赤い頂点の子はどちらも必ず黒。親は必ず黒。
     type RbTree<'a, 'b> =
         | Empty
         | Node of RbTree<'a, 'b> * 'a * 'b * Color * RbTree<'a, 'b>

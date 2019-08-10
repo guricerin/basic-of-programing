@@ -3,6 +3,7 @@ namespace MetroNetwork
 module Tree =
 
     /// 2分探索木
+    /// 親の頂点の値は左の子よりも大きく、右の子よりも小さい。
     type Tree<'a, 'b> =
         | Empty
         | Node of Tree<'a, 'b> * 'a * 'b * Tree<'a, 'b> // キーが'a型、値が'b型
