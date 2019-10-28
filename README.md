@@ -4,9 +4,9 @@
 
 ## リンク
 
-[「プログラミングの基礎」 浅井健一 著 サイエンス社](http://www.saiensu.co.jp/?page=book_details&ISBN=ISBN978-4-7819-1160-1&YEAR=2007)
+* [「プログラミングの基礎」 浅井健一 著 サイエンス社](http://www.saiensu.co.jp/?page=book_details&ISBN=ISBN978-4-7819-1160-1&YEAR=2007)
 
-[著者によるサポートページ](http://pllab.is.ocha.ac.jp/~asai/book/Top.html)
+* [著者によるサポートページ](http://pllab.is.ocha.ac.jp/~asai/book/Top.html)
 
 ## 環境
 
